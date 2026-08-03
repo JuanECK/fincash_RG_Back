@@ -21,5 +21,6 @@ app.use(morganMiddleware);
 
 // Rutas de la API
 app.use('/api/v1', testRoutes);
+// url principal del test
 
 export default app;
