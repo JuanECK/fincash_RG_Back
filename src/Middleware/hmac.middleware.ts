@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'node:crypto';
 import { logger } from '../Config/logger';
+import { env } from '../Config/env';
 
-const HMAC_SECRET = process.env.HMAC_SECRET || 'secreto';
+const HMAC_SECRET = env.HMAC_SECRET;
 
 export const verifyHMAC = ( req:Request, res:Response, next:NextFunction ):void => {
 
