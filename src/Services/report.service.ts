@@ -1,10 +1,19 @@
-export class ReportService {
-    async procesarTestRoute( username:string, authenticatedUser:string ): Promise<{user: string; id:number}> {
 
-        
+// Simulacion de base de dartos para el Test
+export const TestsDatos = [
+    {id:'user_id_test_01', email:'juan@fincash.com', user:'Juan Soto'}
+]
+
+export class ReportService {
+
+    async procesarTestRoute( username:string ): Promise<{user: any; id:string}> {
+
+        const existeUser = TestsDatos.find( user => user.user === username )
+        if( !existeUser ) throw new Error('Usuario no Existe');
+
         return{
-            user,
-            id
+            user: { user:existeUser.user, email:existeUser.email},
+            id:existeUser.id,
         }
     }
 

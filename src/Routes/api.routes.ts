@@ -4,10 +4,8 @@ import { handleTestRoute, handleUpdateProfile, handleUpdateReport } from '../Con
 import { verifyHMAC } from '../Middleware/hmac.middleware';
 import { verifyJWT } from '../Middleware/auth.middleware';
 import { validateResource } from '../Middleware/validate.middleware';
-import { createTestSchema, registerSchema, updateProfileSchema, updateReportSchema } from '../Schemas/test.schema';
-import { loginSchema } from '../Schemas/test.schema';
-import { loginController } from '../Controllers/auth.controller'
-import { logoutController } from '../Controllers/auth.controller';
+import { createTestSchema, registerSchema, updateProfileSchema, updateReportSchema, loginSchema } from '../Schemas/test.schema';
+import { loginController, logoutController } from '../Controllers/auth.controller'
 import { registerController } from '../Controllers/register.controller';
 import { authorizeRoles } from '../Middleware/role.middleware';
 

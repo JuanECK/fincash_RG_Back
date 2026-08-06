@@ -3,18 +3,19 @@ import { logger } from '../Config/logger';
 import { ReportService } from '../Services/report.service';
 
 const reportService = new ReportService();
-
+actuaizar respuestas de error a las personalizadas
 export const handleTestRoute = async ( req:Request, res:Response ):Promise<void> =>{
     try{
         const { username, email } = req.body;
         const authenticatedUser = req.user?.id; // Extraído del JWT por verifyJWT
 
-        logger.info(`Ruta accedida por el usuario JWT: ${authenticatedUser.id || 'Anón'} - Data: ${username}`);
+        // logger.info(`Ruta accedida por el usuario JWT: ${authenticatedUser.id || 'Anón'} - Data: ${username}`);
+        const reporteTest = await reportService.procesarTestRoute( username )
     
         res.status(200).json({
         status: 'success',
         message: 'Petición completamente segura (JWT + HMAC + Zod + Rate Limit).',
-        data: { username, email },
+        data: { reporteTest },
         author: authenticatedUser || null,
         fechaActualizacion: new Date()
         });

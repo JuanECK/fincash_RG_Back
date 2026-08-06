@@ -17,12 +17,25 @@ export const registerController = async (req: Request, res: Response): Promise<v
       data: resultado });
 
   } catch (error: any) {
+    //respeuesta Enmascarada con un HTTP 200 uniforme 
     if (error.message === 'EMAIL_EXISTS') {
-      res.status(400).json({ error: 'El correo electrónico ya está registrado.' });
+      res.status(200).json({
+          atatus:400,
+          error: {
+            code:'REGISTRO FALLIDO',
+            message:'El correo electrónico ya está registrado.' 
+          }
+        });
       return;
     }
     logger.error(`Error en registerController: ${error}`);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    res.status(200).json({
+        ststus:500,
+        error: {
+          code:'ERROR INTERNO DEL SERVIDOR',
+          message: 'No se pudo procesar el registro.'
+        } 
+      });
   }
 };
 
@@ -65,18 +78,32 @@ export const loginController = async (req: Request, res: Response): Promise<void
 
   } catch (error: any) {
     if (error.message === 'INVALID_CREDENTIALS') {
-      res.status(401).json({ error: 'Credenciales inválidas' });
+      res.status(200).json({ 
+        status:401,
+        error: {
+          code:'AUTENTICACION FALLIDA',
+          message:'Credenciales inválidas' 
+        }
+      });
       return;
     }
     logger.error(`Error en loginController: ${error}`);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    res.status(200).json({ 
+      status:500,
+      error: {
+        code:'ERROR INTERNO DEL SERVIDOR',
+        message:'Ocurrió un inconveniente al validar el acceso.'
+      } 
+    });
   }
 };
 
 export const logoutController = async (req: Request, res: Response): Promise<void> => {
   res.clearCookie('access_token');
-    logger.info('Sesión cerrada y cookie eliminada de forma segura.');
-  res.status(200).json({ status: 'success', message: 'Sesión cerrada correctamente' });
+  logger.info('Sesión cerrada y cookie eliminada de forma segura.');
+  res.status(200).json({ 
+    status: 'success', 
+    message: 'Sesión cerrada correctamente' });
 };
 
 

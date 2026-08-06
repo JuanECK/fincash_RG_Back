@@ -27,6 +27,7 @@ export const verifyJWT = (req: Request, res: Response, next: NextFunction): void
     // significa que la firma de la cookie fue manipulada en Postman o en el navegador.
     // const cookieAlterada = req.cookies['access_token'];
     if (!token && tieneCookieEnHeader) {
+
         logger.error(`⚠️ INTENTO DE HACKEO: Estructura de cookie manipulada. IP: ${req.ip}`);
         
         // Borramos la cookie corrupta del cliente de forma agresiva
@@ -37,8 +38,11 @@ export const verifyJWT = (req: Request, res: Response, next: NextFunction): void
         signed: true
         });
 
-        res.status(403).json({ 
-        error: 'Estructura de sesión corrupta o alterada. Sesión destruida automáticamente por seguridad.' 
+        res.status(200).json({
+            status: 403, 
+            error: {
+                code: 'SESION CORRUPTA',
+                message: 'Estructura de sesión inválida. Sesión cerrada.'}
         });
         return;
     }
@@ -46,7 +50,13 @@ export const verifyJWT = (req: Request, res: Response, next: NextFunction): void
       // Si literalmente no envió ninguna cookie (sesión caducada real o nunca inició sesión)
     if (!token) {
         logger.warning(`Intento de acceso denegado por falta de cookie de sesión. IP: ${req.ip}`);
-        res.status(401).json({ error: 'Acceso denegado. Sesión no activa o caducada.' });
+        res.status(200).json({
+                status:401,
+                error: {
+                    code:'NO AUTORIZADO',
+                    message:'Acceso denegado. Sesión no activa o caducada.'
+                } 
+            });
         return;
     }
 
@@ -68,6 +78,12 @@ export const verifyJWT = (req: Request, res: Response, next: NextFunction): void
         signed: true
     })
 
-    res.status(403).json({ error: 'Sesión inválida o alterada. Tu sesión ha sido cerrada automáticamente por seguridad.' });
+    res.status(200).json({ 
+        STATUS:403,
+        error: {
+            code:'SESION EXPIRADA',
+            message: 'Sesión inválida o alterada. Tu sesión ha sido cerrada automáticamente por seguridad.' 
+        }
+    });
   }
 };

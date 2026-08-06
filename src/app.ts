@@ -4,7 +4,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { logger } from './Config/logger';
-import testRoutes from './Routes/test.routes';
+import testRoutes from './Routes/api.routes';
 import { env } from './Config/env';
 
 const app = express();
