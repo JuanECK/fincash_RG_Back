@@ -40,3 +40,16 @@ export const updateProfileSchema = z.object({
     direccion: z.string().min(5, 'La dirección es demasiado corta.'),
   }),
 });
+
+export const forgotPasswordSchema = z.object({
+  body: z.object({
+    email: z.email('Formato de correo electrónico inválido'),
+  }),
+});
+
+export const resetPasswordSchema = z.object({
+  body: z.object({
+    token: z.string({ error: 'El token de recuperación es obligatorio.' }),
+    newPassword: z.string().min(6, 'La nueva contraseña debe tener al menos 6 caracteres.'),
+  }),
+});

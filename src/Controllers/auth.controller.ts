@@ -41,6 +41,7 @@ export const registerController = async (req: Request, res: Response): Promise<v
 
 export const loginController = async (req: Request, res: Response): Promise<void> => {
   try {
+    res.clearCookie('access_token'); // 🧼 Limpieza preventiva antes de generar la nueva cookie
     const { email, password } = req.body;
     const { token, user } = await authService.verificarCredenciales(email, password);
 
@@ -49,6 +50,10 @@ export const loginController = async (req: Request, res: Response): Promise<void
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
       sameSite: 'strict',
+      // ==========================================================================================================
+      // sameSite: 'lax', // Permite que viaje entre subdominios controlados
+      // domain: '.fincash.com', // 👈 Crucial: El punto inicial permite que comparta la cookie con subdominios
+      // ==========================================================================================================
       signed: true,
       maxAge: 60 * 60 * 1000
     });
@@ -106,121 +111,53 @@ export const logoutController = async (req: Request, res: Response): Promise<voi
     message: 'Sesión cerrada correctamente' });
 };
 
+export const forgotPasswordController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.body;
+    
+    // El servicio se encarga de discriminar si existe o no internamente
+    await authService.generarTokenRecuperacion(email);
 
+    // 🛡️ RESPUESTA OPACA: El mensaje es exactamente igual para correos reales y falsos
+    res.status(200).json({
+      status: 'success',
+      message: 'El correo electrónico está registrado, recibirás un enlace de recuperación en los próximos minutos.'
+    });
+  } catch (error) {
+    logger.error(`Error en forgotPasswordController: ${error}`);
+    res.status(200).json({ 
+      status: 409, 
+      error: { 
+        ode: 'ERROR INTERNO DEL SERVIDOR', 
+        message: 'No se pudo procesar la solicitud.' } });
+  }
+};
 
+export const resetPasswordController = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token, newPassword } = req.body;
 
-// import { Request, Response } from 'express';
-// import { AuthService } from '../Services/auth.service';
-// import { logger } from '../Config/logger';
-// import { env } from '../Config/env';
-// // import jwt from 'jsonwebtoken';
-// // import bcrypt from 'bcrypt';
+    await authService.cambiarContrasenaConToken(token, newPassword);
 
-// // const JWT_SECRET = env.JWT_SECRET;
-
-// // Simulación de base de datos con dos usuarios de roles distintos para tus pruebas
-// // const mockUsuariosBD = [
-// //   {
-// //     id: "user_admin_01",
-// //     email: "admin@fincash.com",
-// //     passwordHash: "", // Se llena abajo
-// //     role: "admin"
-// //   },
-// //   {
-// //     id: "user_comun_02",
-// //     email: "cliente@fincash.com",
-// //     passwordHash: "", // Se llena abajo
-// //     role: "user"
-// //   }
-// // ];
-
-// const authService = new AuthService();
-
-// export const loginController = async (req: Request, res: Response): Promise<void> => {
-//   try {
-//     const { email, password } = req.body;
-//     const { token, user } = await authService.verificarCredenciales(email, password);
-
-
-//     // Inicialización rápida de hashes para la prueba en memoria
-//     // mockUsuariosBD[0].passwordHash = await bcrypt.hash("Admin123!", 10);
-//     // mockUsuariosBD[1].passwordHash = await bcrypt.hash("User123!", 10);
-
-//     // 1. Buscar al usuario en nuestro arreglo
-//     const usuarioEncontrado = mockUsuariosBD.find(u => u.email === email);
-//     if (!usuarioEncontrado) {
-//        res.status(401).json({ error: 'Credenciales de usuario inválidas' });
-//        return;
-//     }
-
-//     // 2. Validar la contraseña con bcrypt
-//     const isPasswordValid = await bcrypt.compare(password, usuarioEncontrado.passwordHash);
-//     if (!isPasswordValid) {
-//        res.status(401).json({ error: 'Credenciales de password inválidas' });
-//        return;
-//     }
-
-//     // 3. Generar el token con su rol correspondiente
-//     const token = jwt.sign(
-//       { id: usuarioEncontrado.id, role: usuarioEncontrado.role },
-//       env.JWT_SECRET,
-//       { expiresIn: '1h' }
-//     );
-
-//     // 4. Inyectar la cookie HTTP-Only firmada y segura
-//     res.cookie('access_token', token, {
-//       httpOnly: true,
-//       secure: env.NODE_ENV === 'production',
-//       sameSite: 'strict',
-//       signed: true,
-//       maxAge: 60 * 60 * 1000
-//     });
-
-//     logger.info(`🔑 Sesión iniciada con éxito. ID: ${usuarioEncontrado.id} [Rol: ${usuarioEncontrado.role}]`);
-
-//     // =========================================================================
-//     // LÓGICA DE SEGUIMIENTO INMEDIATA: RESPUESTA DEPENDIENDO DEL ROL
-//     // =========================================================================
-//     if (usuarioEncontrado.role === 'admin') {
-//       res.status(200).json({
-//         status: 'success',
-//         message: 'Bienvenido Administrador. Acceso total.',
-//         user: { id: usuarioEncontrado.id, email: usuarioEncontrado.email, role: usuarioEncontrado.role },
-//         redirectTo: '/admin/dashboard', // Indica al frontend a dónde enviarlo
-//         dashboardData: {
-//           logsSistema: 'Estables',
-//           balanceFinancieroGlobal: '$1,500,000.00 MXN',
-//           usuariosActivos: 142
-//         }
-//       });
-//       return;
-//     } 
-
-//     if (usuarioEncontrado.role === 'user') {
-//       res.status(200).json({
-//         status: 'success',
-//         message: 'Bienvenido Cliente. Acceso estándar concedido.',
-//         user: { id: usuarioEncontrado.id, email: usuarioEncontrado.email, role: usuarioEncontrado.role },
-//         redirectTo: '/user/home', // Redirección diferente para usuarios comunes
-//         profileData: {
-//           misCuentas: ['Ahorros', 'Débito'],
-//           saldoDisponible: '$4,250.00 MXN',
-//           ultimasTransacciones: ['Retiro OXXO', 'Transferencia SPEI']
-//         }
-//       });
-//       return;
-//     }
-
-//     // rol no contemplado Extra
-//     res.status(200).json({
-//       status: 'success',
-//       message: 'Inicio de sesión exitoso.',
-//       user: { role: usuarioEncontrado.role }
-//     });
-
-//   } catch (error) {
-//     logger.error(`Error en loginController: ${error}`);
-//     res.status(500).json({ error: 'Error interno del servidor' });
-//   }
-// };
-
+    res.status(200).json({
+      status: 'success',
+      message: 'Tu contraseña ha sido actualizada con éxito. Ya puedes iniciar sesión.'
+    });
+  } catch (error: any) {
+    if (error.message === 'TOKEN_INVALID_OR_EXPIRED') {
+      res.status(200).json({
+        status: 409,
+        error: { 
+          code: 'SOLICITUD INCORRECTA', 
+          message: 'El enlace de recuperación es inválido o ha expirado.' }
+      });
+      return;
+    }
+    logger.error(`Error en resetPasswordController: ${error}`);
+    res.status(200).json({ 
+      status: 500, 
+      error: { 
+        code: 'ERROR INTERNO DEL SERVIDOR', 
+        message: 'Inconveniente al actualizar la credencial.' } });
+  }
+};

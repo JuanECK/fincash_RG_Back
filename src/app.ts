@@ -8,6 +8,7 @@ import testRoutes from './Routes/api.routes';
 import { env } from './Config/env';
 
 const app = express();
+app.disable('x-powered-by'); // desactivar que se trata de Express
 
 // -----Capas globales de seguridad y utilidades-----
 
@@ -64,6 +65,7 @@ const morganMiddleware = morgan(
 );
 app.use(morganMiddleware);
 
+app.set('trust proxy', 1); // Indispensable para que el Rate Limiter lea la IP real del cliente
 // Rutas de la API
 app.use('/api/v1', testRoutes);
 // url principal del test

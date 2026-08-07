@@ -4,8 +4,8 @@ import { handleTestRoute, handleUpdateProfile, handleUpdateReport } from '../Con
 import { verifyHMAC } from '../Middleware/hmac.middleware';
 import { verifyJWT } from '../Middleware/auth.middleware';
 import { validateResource } from '../Middleware/validate.middleware';
-import { createTestSchema, registerSchema, updateProfileSchema, updateReportSchema, loginSchema } from '../Schemas/test.schema';
-import { loginController, logoutController } from '../Controllers/auth.controller'
+import { createTestSchema, registerSchema, updateProfileSchema, updateReportSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from '../Schemas/test.schema';
+import { forgotPasswordController, loginController, logoutController, resetPasswordController } from '../Controllers/auth.controller'
 import { registerController } from '../Controllers/register.controller';
 import { authorizeRoles } from '../Middleware/role.middleware';
 
@@ -22,8 +22,7 @@ const apiLimiter = rateLimit({
 // =================================================================================================
 // 1. FLUJO DE AUTENTICACIÓN (LOGIN/REGISTRO - Protegidas por Rate Limiter y Firma HMAC obligatoria)
 // =================================================================================================
-router.post(
-  '/auth/login', 
+router.post('/auth/login', 
   apiLimiter,
   verifyHMAC,                    // Valida que nadie alterara los montos del JSON en tránsito
   validateResource(loginSchema), // Valida la estructura del JSON con Zod
@@ -32,13 +31,25 @@ router.post(
 // Ruta de deslogueo (sin necesidad de verificacion)
 router.post('/auth/logout', logoutController)
 // Ruta de registro de usuario nuevo ( protegida para que solo el administrador pueda dar de alta )
-router.post(
-  '/auth/register', 
+router.post('/auth/register', 
   apiLimiter,
   verifyHMAC,                       // Valida que nadie alterara los montos del JSON en tránsito
   validateResource(registerSchema), // Valida la estructura del JSON con Zod
   registerController                // Ejecuta la acción en el controlador
 )
+
+router.post('/auth/forgot-password', 
+  apiLimiter, 
+  verifyHMAC,                             // Valida que nadie alterara los montos del JSON en tránsito
+  validateResource(forgotPasswordSchema), // Valida la estructura del JSON con Zod
+  forgotPasswordController);              // Ejecuta la acción en el controlador
+
+router.post('/auth/reset-password', 
+  apiLimiter, 
+  verifyHMAC,                            // Valida que nadie alterara los montos del JSON en tránsito
+  validateResource(resetPasswordSchema), // Valida la estructura del JSON con Zod
+  resetPasswordController);              // Ejecuta la acción en el controlador
+
 
 // ==========================================
 // ACCIONES POST-LOGIN (PROCESOS OPERATIVOS)
@@ -48,8 +59,7 @@ router.post(
 router.post('/test', apiLimiter, verifyJWT, verifyHMAC, validateResource(createTestSchema), handleTestRoute);
 
 // RUTA EXCLUSIVA ADMINS
-router.put(
-  '/admin/update-report',
+router.put('/admin/update-report',
   apiLimiter,
   verifyJWT,                            // Valida que tenga la cookie de sesión activa
   authorizeRoles('admin'),              // Bloquea si no es un Administrador
@@ -59,8 +69,7 @@ router.put(
 );
 
 // NUEVA RUTA PARA USUARIOS Y ADMINS
-router.patch(
-  '/user/update-profile',
+router.patch('/user/update-profile',
   apiLimiter,
   verifyJWT,                              // Valida que tenga la cookie de sesión activa
   authorizeRoles('user', 'admin'),        // Permite el paso a ambos roles

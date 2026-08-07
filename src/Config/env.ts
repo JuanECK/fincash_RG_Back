@@ -21,6 +21,13 @@ const envSchema = z.object({
     error: 'La variable HMAC_SECRET es obligatoria para validar la integridad de las peticiones.',
   }).min(14, 'HMAC_SECRET debe tener al menos 32 caracteres por seguridad.'),
   ALLOWED_ORIGIN: z.url('ALLOWED_ORIGIN debe ser una URL válida (ej: http://localhost:5173).'),
+
+  // nodeMailer
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.string().transform((val) => val ? parseInt(val, 10) : 587).optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  EMAIL_FROM: z.string().default('"Fincash RG Security" <no-reply@fincash.com>'),
 });
 
 // intenta parsear y validar process.env

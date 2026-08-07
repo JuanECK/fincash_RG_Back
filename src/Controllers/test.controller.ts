@@ -3,14 +3,14 @@ import { logger } from '../Config/logger';
 import { ReportService } from '../Services/report.service';
 
 const reportService = new ReportService();
-actuaizar respuestas de error a las personalizadas
+
 export const handleTestRoute = async ( req:Request, res:Response ):Promise<void> =>{
     try{
-        const { username, email } = req.body;
+        const { email } = req.body;
         const authenticatedUser = req.user?.id; // Extraído del JWT por verifyJWT
 
         // logger.info(`Ruta accedida por el usuario JWT: ${authenticatedUser.id || 'Anón'} - Data: ${username}`);
-        const reporteTest = await reportService.procesarTestRoute( username )
+        const reporteTest = await reportService.procesarTestRoute( email )
     
         res.status(200).json({
         status: 'success',
@@ -22,7 +22,13 @@ export const handleTestRoute = async ( req:Request, res:Response ):Promise<void>
 
     }catch(error){
         logger.error(`Error en test.controller: ${error}`);
-        res.status(500).json({ error: 'Error interno del servidor' });
+        res.status(200).json({ 
+          ststus:500,
+          error: {
+            code:'AUTENTICACION FALLIDA',
+            message:'Credenciales inválidas'
+          } 
+        });
     }
 }
 
@@ -40,7 +46,13 @@ export const handleUpdateReport = async (req: Request, res: Response): Promise<v
     });
   } catch (error) {
     logger.error(`Error en handleUpdateReport: ${error}`);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    res.status(200).json({ 
+          ststus:500,
+          error: {
+            code:'ERROR INTERNO DEL SERVIDOR',
+            message:'Error interno del servidor'
+          } 
+        });
   }
 };
 
@@ -58,7 +70,13 @@ export const handleUpdateProfile = async (req: Request, res: Response): Promise<
     });
   } catch (error) {
     logger.error(`Error en handleUpdateProfile: ${error}`);
-    res.status(500).json({ error: 'Error interno del servidor' });
+    res.status(200).json({ 
+          ststus:500,
+          error: {
+            code:'ERROR INTERNO DEL SERVIDOR',
+            message:'Error interno del servidor'
+          } 
+        });
   }
 };
 
